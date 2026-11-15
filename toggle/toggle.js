@@ -320,6 +320,8 @@ const api = window.SakugaFX = {
   advance, later, persist, blob, shape, get g() { return g; },
   puff, burst, shards, ring, splash, slash, lines, ticks, donut, wob, kira, sfx, hollow, dotted,
   at, esc, squashy, Base, define,
+  // the lettering as data: words[name] is [width, height, SVG path], and paint(name, { col, edge, dots }) returns the finished word on a canvas
+  words: WORDS, paint: (name, { col, edge, dots } = {}) => word(name) && bake(name, col || P.sfx[0], edge || P.sfx[1], !!dots),
 };
 })();
 // <<< sakuga core

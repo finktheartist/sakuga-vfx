@@ -84,11 +84,13 @@ Or copy the folder into your agent's skills folder by hand (for Claude Code, `~/
 
 An agent with the skill gets a reasonable first pass. These took many rounds of looking at frames and fixing them, and yours will too.
 
+[making-of/](making-of/) is how the painted parts were made: the concept sheets the components were built to match, every image prompt, the raw toggle GIFs and the tries that failed, and the steps that turn generated frames into the toggle. Start there if you want to draw a reaction rather than code it.
+
 ## Working on this repo
 
 - `core.js` is the source of the shared core. After editing it, run `node tools/build.mjs`, which copies it into every component file (between the `// >>> sakuga core` markers) and into the skill. `node tools/build.mjs --check` exits 1 if any file is out of date.
 - `art/words/` holds the six painted sound-effect words. `tools/trace.py` traces them into paths and writes them into `core.js` (`uv run --with potracer --with pillow --with numpy python tools/trace.py`).
-- `toggle/frames.webp` is the toggle's sprite sheet (43 frames, 8 across, 300 by 325 each). The build writes it into `toggle.js`.
+- `toggle/frames.webp` is the toggle's sprite sheet (43 frames, 8 across, 300 by 325 each). The build writes it into `toggle.js`. `tools/frames.sh` and `tools/sheet.sh` rebuild it from the GIFs in `making-of/toggle/`; [making-of/](making-of/README.md#4-the-toggle-step-by-step) has the commands.
 - `node tools/test.mjs http://localhost:8000/gallery/` drives every control with real touch and key events at phone width, checks form values and sideways scroll, and exits 1 on a failure. `node tools/shot.mjs URL OUT W H SCALE` takes a full-page screenshot. Both need Chrome or Chromium (`CHROME=...` if it is somewhere unusual).
 
 ## Limits

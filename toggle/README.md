@@ -38,7 +38,7 @@ el.flip();            // from code, with the animation
 
 ## The frames
 
-`toggle/frames.webp` is the sheet (8 across, 300 by 325 pixels each, 346 KB). `node tools/build.mjs` writes it into `toggle.js`. The originals were 480 by 520; they were halved here, which is still twice the size they are shown at.
+`toggle/frames.webp` is the sheet (8 across, 300 by 325 pixels each, 346 KB). `node tools/build.mjs` writes it into `toggle.js`. The aligned frames are 480 by 520; `tools/sheet.sh` scales them to 300 by 325, twice the size they are shown at. [making-of/](../making-of/README.md#4-the-toggle-step-by-step) shows every step from the generated GIFs to this sheet, with the prompts.
 
 ## Limits
 

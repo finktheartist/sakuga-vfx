@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sakuga Lettering</title>
+<style>
+  :root { --page: #ffffff; --text: #1d1a4a; --mute: #8580b0; --line: #e4e2f2; }
+  html { overflow-x: clip; background: var(--page); }
+  body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.45 -apple-system, "Helvetica Neue", "Segoe UI", sans-serif; overflow-x: clip; }
+  main { width: min(1040px, 100vw - 32px); margin: 0 auto; padding: 40px 0 60px; }
+  h1 { margin: 0; font: italic 800 26px/1.1 "Avenir Next", "Nunito", -apple-system, "Segoe UI", sans-serif; }
+  .sub { max-width: 640px; margin: 6px 0 0; color: var(--mute); }
+  .head, .row { display: grid; grid-template-columns: 110px repeat(5, minmax(0, 1fr)); gap: 10px; align-items: center; }
+  .head { margin-top: 28px; padding-bottom: 8px; border-bottom: 1.5px solid var(--line); color: var(--mute); font-size: 12px; }
+  .row { padding: 14px 0; border-bottom: 1.5px solid var(--line); }
+  .name b { display: block; font-size: 20px; } .name span { display: block; color: var(--mute); font-size: 12px; } .name .play { margin-top: 8px; }
+  .cell { display: grid; place-items: center; min-height: 70px; }
+  .cell img, .cell canvas, .cell svg { width: 100%; height: auto; max-height: 110px; object-fit: contain; }
+  .src { background: repeating-conic-gradient(#f1f0f8 0 25%, #fff 0 50%) 0 0 / 14px 14px; border-radius: 8px; }
+  svg path { fill: none; stroke: var(--text); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+  .play { padding: 5px 12px; border: 1.5px solid var(--text); border-radius: 99px; background: none; color: inherit; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .play:hover { background: var(--text); color: var(--page); }
+  :focus-visible { outline: 2.5px solid #ff5fa8; outline-offset: 3px; }
+  .note { max-width: 640px; margin-top: 24px; color: var(--mute); font-size: 13px; }
+  code { font-size: 13px; }
+  @media (max-width: 640px) {
+    .head { display: none; }
+    .row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .name { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; } .name b, .name span { display: inline; } .name .play { margin-top: 0; }
+    .cell::before { content: attr(data-label); display: block; color: var(--mute); font-size: 11px; justify-self: start; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Lettering</h1>
+  <p class="sub">The six sound-effect words, from painted sprite to what the components draw. Each word was generated as solid black brush lettering on transparency, traced into one vector path, and is painted in code with an outline and a fill, so the same shape can be solid, hollow or screentone at any size.</p>
+  <div class="head" aria-hidden="true"><span>word</span><span>generated sprite</span><span>traced path</span><span>solid</span><span>hollow</span><span>dotted</span></div>
+  <div id="rows"></div>
+  <p class="note">The sprites are in <code>art/words/</code>. <code>tools/trace.py</code> turns them into the paths in <code>core.js</code>, and <code>SakugaFX.paint(name, { col, edge, dots })</code> paints one onto a canvas. The tracing drops specks of a few pixels and rounds the edges very slightly; at the sizes the words are shown, you cannot see the difference.</p>
+</main>
+<script src="../core.js"></script>
+<script>
+// This page's own wiring: everything it draws comes from the core.
+const fx = window.SakugaFX;
+const WORDS = [['don', 'ドン!', 'impact. Button, progress'], ['kachi', 'カチッ', 'click. Tooltip'], ['shu', 'シュッ', 'swish. Slider'],
+  ['pon', 'ポン', 'pop. Radio, rating'], ['zuza', 'ズザッ', 'skid. Checkbox, toast'], ['gogo', 'ゴゴゴゴ', 'rumble. Progress']];
+const STYLES = [['solid', {}], ['hollow', fx.hollow()], ['dotted', fx.dotted()]];
+const rows = document.getElementById('rows');
+for (const [id, text, use] of WORDS) {
+  const [w, h, d] = fx.words[id], n = (d.match(/[MCL]/g) || []).length;
+  const row = document.createElement('div'); row.className = 'row';
+  row.innerHTML = `<div class="name"><b lang="ja">${text}</b><span>${use}</span> <button class="play" type="button">Play</button></div>
+    <div class="cell" data-label="generated sprite"><img class="src" src="../art/words/${id}.webp" alt="${text} as generated"></div>
+    <div class="cell" data-label="traced path, ${n} commands"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${text} traced, outline only"><path fill-rule="evenodd" d="${d}"/></svg></div>`;
+  for (const [label, o] of STYLES) { const c = document.createElement('div'); c.className = 'cell'; c.dataset.label = label; const cv = fx.paint(id, o); cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', `${text}, ${label}`); c.append(cv); row.append(c); }
+  // Play throws the word the way a component does: it lands a size too big, wobbles, and shrinks away
+  // (the still words step aside while it plays)
+  row.querySelector('.play').addEventListener('click', () => STYLES.forEach(([, o], i) => {
+    const cell = row.children[3 + i], c = fx.at(cell); cell.style.visibility = 'hidden';
+    fx.sfx(id, c.x, c.y, { size: Math.min(150, c.w), ...o }); fx.later(950, () => { cell.style.visibility = ''; });
+  }));
+  rows.append(row);
+}
+</script>
+</body>
+</html>

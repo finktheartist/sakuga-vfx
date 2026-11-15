@@ -31,3 +31,9 @@ Colours are --sk-* CSS variables; a page's own :root values win. Effects switch 
 - [core.js](https://sakuga-vfx.vercel.app/skills/sakuga-vfx/core.js): the shared core (Spring, the effects, the lettering, the palette, a custom-element base class with one clock).
 - [starter.html](https://sakuga-vfx.vercel.app/skills/sakuga-vfx/starter.html): the smallest whole example, a like button.
 - [look.mjs](https://sakuga-vfx.vercel.app/skills/sakuga-vfx/look.mjs): stops the clock, steps a reaction to chosen moments and saves the frames side by side.
+
+## How the art was made
+
+- [making-of/README.md](https://sakuga-vfx.vercel.app/making-of/README.md): how the lettering and the toggle's frames were generated, traced, aligned and packed, and why the toggle is drawn rather than simulated.
+- [making-of/prompts.md](https://sakuga-vfx.vercel.app/making-of/prompts.md): every image prompt and setting, in order.
+- [making-of/lettering.html](https://sakuga-vfx.vercel.app/making-of/lettering.html): each sound-effect word from generated sprite to finished lettering.
