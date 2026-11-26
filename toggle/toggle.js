@@ -7,10 +7,71 @@
 // Read el.checked. It fires change when someone flips it. With a name, it is sent with its form like a checkbox.
 (() => {
 function component(fx) {
-const N = 43, FPS = 30, FW = 300, FH = 325, COLS = 8;
-const ON = Array.from({ length: N }, (_, i) => i), OFF = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
-let sheet = null;   // one decoded image for every toggle on the page
-const getSheet = () => sheet || (sheet = Object.assign(new Image(), { src: SHEET }));
+const N = 43, FPS = 38, FW = 300, FH = 325, COLS = 8;
+const ON = Array.from({ length: N - 5 }, (_, i) => i + 5), OFF = [11, 10, 9, 8, 7, 6, 5, 0];
+let sheet = null;
+const themeCache = new Map();
+const getSheet = () => {
+  if (sheet) return sheet;
+  sheet = new Image();
+  sheet.src = SHEET;
+  return sheet;
+};
+function parseRgb(str) {
+  const c = document.createElement('canvas'); c.width = c.height = 1;
+  const x = c.getContext('2d'); x.fillStyle = str; x.fillRect(0, 0, 1, 1);
+  const d = x.getImageData(0, 0, 1, 1).data;
+  return [d[0], d[1], d[2]];
+}
+function readTheme() {
+  const target = document.body || document.documentElement;
+  const cs = getComputedStyle(target), rcs = target === document.documentElement ? cs : getComputedStyle(document.documentElement);
+  const cv = (k, fb) => cs.getPropertyValue(k).trim() || rcs.getPropertyValue(k).trim() || fb;
+  const ink = parseRgb(cv('--sk-ink', '#1d1a4a'));
+  const card = parseRgb(cv('--sk-card', '#ffffff'));
+  const track = parseRgb(cv('--sk-track', '#c9cbe0'));
+  const pri = parseRgb(cv('--sk-pri', '#8f8df7'));
+  const acc = parseRgb(cv('--sk-acc', '#ff5fa8'));
+  const isDefault = ink[0] === 29 && ink[1] === 26 && ink[2] === 74
+    && card[0] === 255 && card[1] === 255 && card[2] === 255
+    && track[0] === 201 && track[1] === 203 && track[2] === 224
+    && pri[0] === 143 && pri[1] === 141 && pri[2] === 247
+    && acc[0] === 255 && acc[1] === 95 && acc[2] === 168;
+  const key = isDefault ? 'default' : [...ink, ...card, ...track, ...pri, ...acc].join(',');
+  return { key, isDefault, ink, card, track, pri, acc };
+}
+function getFrame(i, pal) {
+  const img = getSheet();
+  if (!img.complete || !img.naturalWidth) return null;
+  let bucket = themeCache.get(pal.key);
+  if (!bucket) { bucket = new Array(N); themeCache.set(pal.key, bucket); }
+  if (bucket[i]) return bucket[i];
+  const cv = document.createElement('canvas'); cv.width = FW; cv.height = FH;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(img, (i % COLS) * FW, Math.floor(i / COLS) * FH, FW, FH, 0, 0, FW, FH);
+  if (!pal.isDefault) {
+    const id = ctx.getImageData(0, 0, FW, FH), d = id.data;
+    const { ink, card, track, pri, acc } = pal;
+    for (let p = 0; p < d.length; p += 4) {
+      if (d[p + 3] === 0) continue;
+      const r = d[p], g = d[p + 1], b = d[p + 2];
+      const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+      const wAcc = r > b * 0.78 ? Math.min(1, Math.max(0, (r - g - 18) / 85)) : 0;
+      const wInk = Math.min(1, Math.max(0, (0.44 - lum) / 0.34)) * (1 - wAcc);
+      const rem = Math.max(0, 1 - wInk - wAcc);
+      const wPri = Math.min(1, Math.max(0, (b - r - 28) / 68)) * rem;
+      const rem2 = Math.max(0, rem - wPri);
+      const wTrk = Math.min(1, Math.max(0, (242 - r) / 56)) * rem2;
+      const wCrd = Math.max(0, rem2 - wTrk);
+      d[p] = wInk * ink[0] + wAcc * acc[0] + wPri * pri[0] + wTrk * track[0] + wCrd * card[0];
+      d[p + 1] = wInk * ink[1] + wAcc * acc[1] + wPri * pri[1] + wTrk * track[1] + wCrd * card[1];
+      d[p + 2] = wInk * ink[2] + wAcc * acc[2] + wPri * pri[2] + wTrk * track[2] + wCrd * card[2];
+    }
+    ctx.putImageData(id, 0, 0);
+  }
+  bucket[i] = cv;
+  return cv;
+}
 
 class SakugaToggle extends fx.Base {
   static delegates = true;
@@ -18,7 +79,7 @@ class SakugaToggle extends fx.Base {
   static observedAttributes = ['checked', 'disabled', 'label'];
   static css = `
     :host { width: 108px; height: 54px; margin: 89px 21px 20px; }   /* the drawing is bigger than the button: this keeps room for all of it */
-    .tog { position: relative; display: block; width: 108px; height: 54px; padding: 0; border: 0; border-radius: 27px; background: none; cursor: pointer; }
+    .tog { position: relative; display: block; width: 108px; height: 54px; padding: 0; border: 0; border-radius: 27px; background: none; cursor: pointer; touch-action: manipulation; will-change: transform; }
     .tog:disabled { cursor: not-allowed; opacity: .5; }
     canvas { position: absolute; left: 50%; top: 50%; width: 150px; height: 162.5px; margin: -115.6px 0 0 -75px; pointer-events: none; }`;
   get checked() { return this.hasAttribute('checked'); }
@@ -29,7 +90,7 @@ class SakugaToggle extends fx.Base {
   attributeChangedCallback(name) {
     if (!this.b) return;
     if (name === 'checked') { const on = this.checked; this.b.setAttribute('aria-checked', String(on)); if (!this.flipping) { this.seq = [on ? N - 1 : 0]; this.pos = 0; } this.form(); }
-    if (name === 'disabled') this.b.disabled = this.disabled;
+    if (name === 'disabled') { this.b.disabled = this.disabled; if (this.disabled) this.sq.s.to = 1; }
     if (name === 'label') this.b.setAttribute('aria-label', this.getAttribute('label') || 'Toggle');
   }
   form() { this.internals.setFormValue(this.checked ? this.value : null); }
@@ -38,8 +99,13 @@ class SakugaToggle extends fx.Base {
   }
   setup() {
     this.b = this.$('.tog'); this.c = this.$('canvas').getContext('2d');
-    this.seq = [this.checked ? N - 1 : 0]; this.pos = 0; this.acc = 0; this.shown = -1;
-    const img = getSheet(); if (!img.complete) img.addEventListener('load', () => this.draw(this.cur()), { once: true });
+    this.sq = fx.squashy(this.b, { low: 0.9, wide: 0.14 });
+    this.seq = [this.checked ? N - 1 : 0]; this.pos = 0; this.t = 0; this.shown = -1;
+    this._tv = fx.themeVer; this._pal = readTheme();
+    const img = getSheet();
+    const paintReady = () => { if (this.isConnected) { this._pal = readTheme(); this.draw(this.cur()); } };
+    if (img.complete) paintReady();
+    else img.addEventListener('load', () => { if (img.decode) img.decode().then(paintReady).catch(paintReady); else paintReady(); }, { once: true });
     this.b.addEventListener('click', () => this.flip());
     this.form();
   }
@@ -47,16 +113,25 @@ class SakugaToggle extends fx.Base {
   flip() {
     if (this.disabled) return; const on = !this.checked;
     this.flipping = true; this.checked = on; this.flipping = false;
-    this.seq = on ? ON : OFF; this.pos = fx.calm ? this.seq.length - 1 : 0; this.acc = 0; this.draw(this.cur());
+    this.sq.pop.x = 1.08;
+    this.seq = on ? ON : OFF; this.pos = fx.calm ? this.seq.length - 1 : 0; this.t = 0; this.draw(this.cur());
     this.dispatchEvent(new Event('change', { bubbles: true }));
   }
   cur() { return this.seq[Math.min(this.seq.length - 1, this.pos)]; }
   draw(i) {
-    const img = getSheet(); if (!img.complete || !img.naturalWidth) return;
-    this.c.clearRect(0, 0, FW, FH); this.c.drawImage(img, (i % COLS) * FW, Math.floor(i / COLS) * FH, FW, FH, 0, 0, FW, FH); this.shown = i;
+    const f = getFrame(i, this._pal || (this._pal = readTheme()));
+    if (!f) return;
+    this.c.clearRect(0, 0, FW, FH); this.c.drawImage(f, 0, 0); this.shown = i;
   }
   frame(dt) {
-    if (this.pos < this.seq.length - 1) { this.acc += dt * FPS; while (this.acc >= 1 && this.pos < this.seq.length - 1) { this.acc -= 1; this.pos++; } }
+    this.sq.step(dt);
+    if (this._tv !== fx.themeVer) {
+      this._tv = fx.themeVer; this._pal = readTheme(); this.shown = -1;
+    }
+    if (this.pos < this.seq.length - 1) {
+      this.t += dt;
+      this.pos = Math.min(this.seq.length - 1, Math.floor((this.t + 0.004) * FPS));
+    }
     if (this.cur() !== this.shown) this.draw(this.cur());
   }
 }
@@ -85,11 +160,62 @@ class Spring {
 // ───────── the palette ─────────
 // P is for the effects; the CSS variables below are for the controls.
 const P = { fill: '#ffffff', shade: '#b8b3ff', line: '#5a4fd8', accent: '#ff5fa8', ink: '#1d1a4a', sfx: ['#1d1a4a', '#ffffff'] };
-const VARS = '--sk-card:#fff;--sk-ink:#1d1a4a;--sk-dim:#8580b0;--sk-soft:#b8b3ff;--sk-pri:#8f8df7;--sk-pri-ink:#1d1a4a;--sk-acc:#ff5fa8;--sk-track:#c9cbe0;--sk-r:15px;--sk-bw:3.2px;--sk-sh:6px 7px 0 var(--sk-soft);--sk-btn-sh:var(--sk-sh);--sk-btn-line:var(--sk-ink);--sk-alt-sh:var(--sk-sh);--sk-alt-line:var(--sk-ink);--sk-tick:var(--sk-ink);--sk-fill:var(--sk-acc);--sk-on-pri:#fff;';
+const VARS = '--sk-card:#fff;--sk-ink:#1d1a4a;--sk-dim:#8580b0;--sk-soft:#b8b3ff;--sk-pri:#8f8df7;--sk-pri-ink:#1d1a4a;--sk-acc:#ff5fa8;--sk-track:#c9cbe0;--sk-r:15px;--sk-bw:3.2px;--sk-sh:6px 7px 0 var(--sk-soft);--sk-btn-sh:var(--sk-sh);--sk-btn-line:var(--sk-ink);--sk-alt-sh:var(--sk-sh);--sk-alt-line:var(--sk-ink);--sk-tick:var(--sk-ink);--sk-fill:var(--sk-acc);--sk-on-pri:#fff;--sk-fx-fill:var(--sk-card);--sk-fx-shade:var(--sk-soft);--sk-fx-line:#5a4fd8;--sk-fx-acc:var(--sk-acc);--sk-fx-ink:var(--sk-ink);--sk-sfx-fill:var(--sk-ink);--sk-sfx-edge:var(--sk-card);--sk-mask:rgba(29,26,74,.24);--sk-mask-dot:rgba(29,26,74,.22);';
 // :where() keeps these at no specificity, so a page's own :root { --sk-acc: ... } wins.
 const pageCss = `:where(:root){${VARS}}
 canvas.sakuga-fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2147483000}`;
 document.head.append(Object.assign(document.createElement('style'), { textContent: pageCss }));
+
+let themeSig = '', themeVer = 0;
+function refreshTheme() {
+  const target = document.body || document.documentElement;
+  if (!target) return;
+  const cs = getComputedStyle(target), rootCs = target === document.documentElement ? cs : getComputedStyle(document.documentElement);
+  const cv = (name, fb) => cs.getPropertyValue(name).trim() || rootCs.getPropertyValue(name).trim() || fb;
+  const next = {
+    fill: cv('--sk-fx-fill', cv('--sk-card', '#ffffff')),
+    shade: cv('--sk-fx-shade', cv('--sk-soft', '#b8b3ff')),
+    line: cv('--sk-fx-line', '#5a4fd8'),
+    accent: cv('--sk-fx-acc', cv('--sk-acc', '#ff5fa8')),
+    ink: cv('--sk-fx-ink', cv('--sk-ink', '#1d1a4a')),
+    sfx0: cv('--sk-sfx-fill', cv('--sk-ink', '#1d1a4a')),
+    sfx1: cv('--sk-sfx-edge', cv('--sk-card', '#ffffff')),
+    card: cv('--sk-card', '#ffffff'),
+    pri: cv('--sk-pri', '#8f8df7'),
+    track: cv('--sk-track', '#c9cbe0'),
+  };
+  const sig = Object.values(next).join('|');
+  if (sig === themeSig) return;
+  themeSig = sig; themeVer++;
+  P.fill = next.fill; P.shade = next.shade; P.line = next.line; P.accent = next.accent; P.ink = next.ink;
+  P.sfx[0] = next.sfx0; P.sfx[1] = next.sfx1;
+  baked?.clear?.();
+}
+const CUSTOM_KEYS = ['--sk-card', '--sk-ink', '--sk-dim', '--sk-soft', '--sk-pri', '--sk-pri-ink', '--sk-acc', '--sk-track', '--sk-on-pri', '--sk-fx-fill', '--sk-fx-shade', '--sk-fx-line', '--sk-fx-acc', '--sk-fx-ink', '--sk-sfx-fill', '--sk-sfx-edge', '--sk-mask', '--sk-mask-dot'];
+function setTheme(opts = {}, target = document.documentElement) {
+  if (!target) return;
+  const map = { card: '--sk-card', ink: '--sk-ink', dim: '--sk-dim', soft: '--sk-soft', pri: '--sk-pri', priInk: '--sk-pri-ink', acc: '--sk-acc', accent: '--sk-acc', track: '--sk-track', onPri: '--sk-on-pri', fxFill: '--sk-fx-fill', fxShade: '--sk-fx-shade', line: '--sk-fx-line', fxLine: '--sk-fx-line', fxAcc: '--sk-fx-acc', fxInk: '--sk-fx-ink', sfxFill: '--sk-sfx-fill', sfxEdge: '--sk-sfx-edge', mask: '--sk-mask', maskDot: '--sk-mask-dot' };
+  for (const [k, v] of Object.entries(opts)) {
+    const cssVar = k.startsWith('--') ? k : map[k];
+    if (!cssVar) continue;
+    if (v === null || v === undefined || v === '') target.style.removeProperty(cssVar);
+    else target.style.setProperty(cssVar, String(v));
+  }
+  refreshTheme();
+}
+function resetTheme(target = document.documentElement) {
+  if (!target) return;
+  for (const k of CUSTOM_KEYS) target.style.removeProperty(k);
+  refreshTheme();
+}
+if (typeof MutationObserver === 'function') {
+  const obs = new MutationObserver(() => refreshTheme());
+  const watch = (el) => el && obs.observe(el, { attributes: true, attributeFilter: ['style', 'class', 'data-theme', 'data-sk-theme', 'theme'] });
+  watch(document.documentElement);
+  if (document.body) watch(document.body);
+  else document.addEventListener('DOMContentLoaded', () => { watch(document.body); refreshTheme(); }, { once: true });
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', refreshTheme);
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 let calm = reduce.matches; reduce.addEventListener?.('change', (e) => { calm = e.matches; });
@@ -261,8 +387,8 @@ function bake(name, fc, oc, dots) {
   c = document.createElement('canvas'); c.width = s.w + pad * 2; c.height = s.h + pad * 2;
   const x = c.getContext('2d'); x.translate(pad, pad); x.lineJoin = 'round';
   x.strokeStyle = x.fillStyle = oc; x.lineWidth = e * 2; x.stroke(s.p); x.fill(s.p);
-  if (dots) {   // screentone letters: dots in the outline colour on white
-    const t = document.createElement('canvas'); t.width = 22; t.height = 44; const y = t.getContext('2d'); y.fillStyle = '#fff'; y.fillRect(0, 0, 22, 44); y.fillStyle = oc; y.beginPath();
+  if (dots) {   // screentone letters: dots in the outline colour on the fill colour
+    const t = document.createElement('canvas'); t.width = 22; t.height = 44; const y = t.getContext('2d'); y.fillStyle = fc || P.fill; y.fillRect(0, 0, 22, 44); y.fillStyle = oc; y.beginPath();
     for (const [px, py] of [[0, 0], [22, 0], [0, 44], [22, 44], [11, 22]]) { y.moveTo(px + 5.2, py); y.arc(px, py, 5.2, 0, TAU); } y.fill(); x.fillStyle = x.createPattern(t, 'repeat');
   } else x.fillStyle = fc;
   x.fill(s.p); baked.set(key, c); return c;
@@ -277,8 +403,9 @@ function sfx(name, x, y, { size = 64, rot = -0.14, life = 0.95, col, edge, dots 
     g.drawImage(c, -c.width / 2 * sc, -c.height / 2 * sc, c.width * sc, c.height * sc);
   });
 }
-// two lettering styles: hollow (white with an ink edge) and dotted (screentone letters)
-const hollow = () => ({ col: '#ffffff', edge: '#1d1a4a' }), dotted = () => ({ dots: true, edge: '#1d1a4a' });
+// two lettering styles: hollow (paper with an ink edge) and dotted (screentone letters)
+const hollow = () => ({ col: P.sfx[1], edge: P.sfx[0] }), dotted = () => ({ dots: true, col: P.sfx[1], edge: P.sfx[0] });
+refreshTheme();
 
 // ───────── for components ─────────
 const at = (el, fx = 0.5, fy = 0.5) => { const b = el.getBoundingClientRect(); return { x: b.left + scrollX + b.width * fx, y: b.top + scrollY + b.height * fy, w: b.width, h: b.height }; };
@@ -315,11 +442,11 @@ const define = (tag, cls) => { if (!customElements.get(tag)) customElements.defi
 
 const api = window.SakugaFX = {
   version: 1, paused: false,
-  get P() { return P; }, get calm() { return calm; }, get now() { return now; },
+  get P() { return P; }, get calm() { return calm; }, get now() { return now; }, get themeVer() { return themeVer; },
   TAU, clamp, lerp, rnd, Spring,
   advance, later, persist, blob, shape, get g() { return g; },
   puff, burst, shards, ring, splash, slash, lines, ticks, donut, wob, kira, sfx, hollow, dotted,
-  at, esc, squashy, Base, define,
+  at, esc, squashy, Base, define, refreshTheme, setTheme, resetTheme,
 };
 })();
 // <<< sakuga core

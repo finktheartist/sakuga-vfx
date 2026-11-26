@@ -17,7 +17,7 @@ class SakugaSlider extends fx.Base {
     .sld { position: relative; width: var(--sk-slider-width, 230px); max-width: 100%; height: 46px; }
     .trk { position: absolute; left: 0; right: 0; top: 16px; height: 14px; border: var(--sk-bw) solid var(--sk-ink); border-radius: 7px; background: var(--sk-card); overflow: hidden; }
     .trk i { display: block; height: 100%; width: calc(var(--v, 0) * 100% + 6px); max-width: 100%; background: var(--sk-pri); }
-    .th { position: absolute; top: 9px; left: 0; width: 28px; height: 28px; border-radius: 50%; background: #fff; border: var(--sk-bw) solid var(--sk-ink); will-change: transform; }
+    .th { position: absolute; top: 9px; left: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--sk-card); border: var(--sk-bw) solid var(--sk-ink); will-change: transform; }
     .val { position: absolute; top: -30px; left: -9px; min-width: 46px; padding: 3px 4px; border: 2.6px solid var(--sk-ink); border-radius: 9px; background: var(--sk-card); text-align: center; font: 800 13px/1.1 -apple-system, "Segoe UI", system-ui, sans-serif; white-space: nowrap; transform-origin: 50% 160%; will-change: transform; }
     .val::after { content: ""; position: absolute; left: 50%; top: 100%; margin-left: -5px; border: 5px solid transparent; border-top: 7px solid var(--sk-ink); }
     input { position: absolute; inset: -8px 0; width: 100%; height: calc(100% + 16px); margin: 0; opacity: 0; cursor: ew-resize; }
@@ -49,7 +49,7 @@ class SakugaSlider extends fx.Base {
     r.addEventListener('input', () => this.sync());
     r.addEventListener('change', () => {
       const c = at(this.th), dir = Math.sign(this.peak) || 1;
-      if (Math.abs(this.peak) > 1.3) { slash(c.x + dir * 34, c.y, { len: 150, ang: dir > 0 ? 0 : Math.PI, thick: 12, life: 0.5, col: '#b8b3ff' }); burst(c.x + dir * 4, c.y, { r: 24, spikes: 11, life: 0.28 }); shards(c.x + dir * 10, c.y, { n: 4, size: 4, dir: dir > 0 ? 0 : Math.PI, arc: 2.4 }); ticks(c.x + dir * 52, c.y - 30, { dir: dir > 0 ? -0.6 : -2.5, n: 3, r: 4, len: 10 });
+      if (Math.abs(this.peak) > 1.3) { slash(c.x + dir * 34, c.y, { len: 150, ang: dir > 0 ? 0 : Math.PI, thick: 12, life: 0.5, col: fx.P.shade }); burst(c.x + dir * 4, c.y, { r: 24, spikes: 11, life: 0.28 }); shards(c.x + dir * 10, c.y, { n: 4, size: 4, dir: dir > 0 ? 0 : Math.PI, arc: 2.4 }); ticks(c.x + dir * 52, c.y - 30, { dir: dir > 0 ? -0.6 : -2.5, n: 3, r: 4, len: 10 });
         later(520, () => { puff(c.x - dir * 60, c.y - 34, { size: 11, n: 4, vy: -10, life: 0.8 }); puff(c.x - dir * 22, c.y - 22, { size: 6, n: 3, vy: -8, life: 0.6 }); wob(c.x - dir * 82, c.y - 34, { dir: -1, r: 9 }); }); }
       if (this.frac() >= 1 || this.frac() <= 0) shards(c.x, c.y, { n: 5, dir: dir > 0 ? Math.PI : 0, arc: 2 });
       this.peak = 0; this.dispatchEvent(new Event('change', { bubbles: true }));
@@ -64,7 +64,7 @@ class SakugaSlider extends fx.Base {
       this.acc += dt * Math.abs(v) * 20; const c = at(this.th), dir = Math.sign(v), big = Math.min(1, Math.abs(v) / 2.4);
       while (this.acc > 1) { this.acc -= 1; puff(c.x - dir * rnd(14, 30), c.y - rnd(2, 12) - big * 8, { size: rnd(6, 9) + big * 9, n: 4, vx: -dir * rnd(26, 70), vy: -rnd(22, 58) * (0.5 + big), life: rnd(0.7, 1.15) });
         lines(c.x - dir * 16, c.y + rnd(-4, 12), { n: 1, dir: dir > 0 ? Math.PI : 0, len: 50 + big * 50, spread: 2, life: 0.24 }); if (Math.random() < 0.3) shards(c.x - dir * 20, c.y + 6, { n: 1, size: 3.5, speed: 120, dir: dir > 0 ? Math.PI + 0.5 : -0.5, arc: 1 }); }
-      if (Math.abs(v) > 1.5 && this.t - this.said > 1.1) { this.said = this.t; sfx('shu', c.x - dir * 6, c.y - 78, { size: 104, life: 0.75, rot: -0.16, col: '#5a4fd8', edge: '#ffffff' }); }
+      if (Math.abs(v) > 1.5 && this.t - this.said > 1.1) { this.said = this.t; sfx('shu', c.x - dir * 6, c.y - 78, { size: 104, life: 0.75, rot: -0.16, col: fx.P.line, edge: fx.P.fill }); }
     }
   }
 }
@@ -93,11 +93,62 @@ class Spring {
 // ───────── the palette ─────────
 // P is for the effects; the CSS variables below are for the controls.
 const P = { fill: '#ffffff', shade: '#b8b3ff', line: '#5a4fd8', accent: '#ff5fa8', ink: '#1d1a4a', sfx: ['#1d1a4a', '#ffffff'] };
-const VARS = '--sk-card:#fff;--sk-ink:#1d1a4a;--sk-dim:#8580b0;--sk-soft:#b8b3ff;--sk-pri:#8f8df7;--sk-pri-ink:#1d1a4a;--sk-acc:#ff5fa8;--sk-track:#c9cbe0;--sk-r:15px;--sk-bw:3.2px;--sk-sh:6px 7px 0 var(--sk-soft);--sk-btn-sh:var(--sk-sh);--sk-btn-line:var(--sk-ink);--sk-alt-sh:var(--sk-sh);--sk-alt-line:var(--sk-ink);--sk-tick:var(--sk-ink);--sk-fill:var(--sk-acc);--sk-on-pri:#fff;';
+const VARS = '--sk-card:#fff;--sk-ink:#1d1a4a;--sk-dim:#8580b0;--sk-soft:#b8b3ff;--sk-pri:#8f8df7;--sk-pri-ink:#1d1a4a;--sk-acc:#ff5fa8;--sk-track:#c9cbe0;--sk-r:15px;--sk-bw:3.2px;--sk-sh:6px 7px 0 var(--sk-soft);--sk-btn-sh:var(--sk-sh);--sk-btn-line:var(--sk-ink);--sk-alt-sh:var(--sk-sh);--sk-alt-line:var(--sk-ink);--sk-tick:var(--sk-ink);--sk-fill:var(--sk-acc);--sk-on-pri:#fff;--sk-fx-fill:var(--sk-card);--sk-fx-shade:var(--sk-soft);--sk-fx-line:#5a4fd8;--sk-fx-acc:var(--sk-acc);--sk-fx-ink:var(--sk-ink);--sk-sfx-fill:var(--sk-ink);--sk-sfx-edge:var(--sk-card);--sk-mask:rgba(29,26,74,.24);--sk-mask-dot:rgba(29,26,74,.22);';
 // :where() keeps these at no specificity, so a page's own :root { --sk-acc: ... } wins.
 const pageCss = `:where(:root){${VARS}}
 canvas.sakuga-fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2147483000}`;
 document.head.append(Object.assign(document.createElement('style'), { textContent: pageCss }));
+
+let themeSig = '', themeVer = 0;
+function refreshTheme() {
+  const target = document.body || document.documentElement;
+  if (!target) return;
+  const cs = getComputedStyle(target), rootCs = target === document.documentElement ? cs : getComputedStyle(document.documentElement);
+  const cv = (name, fb) => cs.getPropertyValue(name).trim() || rootCs.getPropertyValue(name).trim() || fb;
+  const next = {
+    fill: cv('--sk-fx-fill', cv('--sk-card', '#ffffff')),
+    shade: cv('--sk-fx-shade', cv('--sk-soft', '#b8b3ff')),
+    line: cv('--sk-fx-line', '#5a4fd8'),
+    accent: cv('--sk-fx-acc', cv('--sk-acc', '#ff5fa8')),
+    ink: cv('--sk-fx-ink', cv('--sk-ink', '#1d1a4a')),
+    sfx0: cv('--sk-sfx-fill', cv('--sk-ink', '#1d1a4a')),
+    sfx1: cv('--sk-sfx-edge', cv('--sk-card', '#ffffff')),
+    card: cv('--sk-card', '#ffffff'),
+    pri: cv('--sk-pri', '#8f8df7'),
+    track: cv('--sk-track', '#c9cbe0'),
+  };
+  const sig = Object.values(next).join('|');
+  if (sig === themeSig) return;
+  themeSig = sig; themeVer++;
+  P.fill = next.fill; P.shade = next.shade; P.line = next.line; P.accent = next.accent; P.ink = next.ink;
+  P.sfx[0] = next.sfx0; P.sfx[1] = next.sfx1;
+  baked?.clear?.();
+}
+const CUSTOM_KEYS = ['--sk-card', '--sk-ink', '--sk-dim', '--sk-soft', '--sk-pri', '--sk-pri-ink', '--sk-acc', '--sk-track', '--sk-on-pri', '--sk-fx-fill', '--sk-fx-shade', '--sk-fx-line', '--sk-fx-acc', '--sk-fx-ink', '--sk-sfx-fill', '--sk-sfx-edge', '--sk-mask', '--sk-mask-dot'];
+function setTheme(opts = {}, target = document.documentElement) {
+  if (!target) return;
+  const map = { card: '--sk-card', ink: '--sk-ink', dim: '--sk-dim', soft: '--sk-soft', pri: '--sk-pri', priInk: '--sk-pri-ink', acc: '--sk-acc', accent: '--sk-acc', track: '--sk-track', onPri: '--sk-on-pri', fxFill: '--sk-fx-fill', fxShade: '--sk-fx-shade', line: '--sk-fx-line', fxLine: '--sk-fx-line', fxAcc: '--sk-fx-acc', fxInk: '--sk-fx-ink', sfxFill: '--sk-sfx-fill', sfxEdge: '--sk-sfx-edge', mask: '--sk-mask', maskDot: '--sk-mask-dot' };
+  for (const [k, v] of Object.entries(opts)) {
+    const cssVar = k.startsWith('--') ? k : map[k];
+    if (!cssVar) continue;
+    if (v === null || v === undefined || v === '') target.style.removeProperty(cssVar);
+    else target.style.setProperty(cssVar, String(v));
+  }
+  refreshTheme();
+}
+function resetTheme(target = document.documentElement) {
+  if (!target) return;
+  for (const k of CUSTOM_KEYS) target.style.removeProperty(k);
+  refreshTheme();
+}
+if (typeof MutationObserver === 'function') {
+  const obs = new MutationObserver(() => refreshTheme());
+  const watch = (el) => el && obs.observe(el, { attributes: true, attributeFilter: ['style', 'class', 'data-theme', 'data-sk-theme', 'theme'] });
+  watch(document.documentElement);
+  if (document.body) watch(document.body);
+  else document.addEventListener('DOMContentLoaded', () => { watch(document.body); refreshTheme(); }, { once: true });
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', refreshTheme);
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 let calm = reduce.matches; reduce.addEventListener?.('change', (e) => { calm = e.matches; });
@@ -269,8 +320,8 @@ function bake(name, fc, oc, dots) {
   c = document.createElement('canvas'); c.width = s.w + pad * 2; c.height = s.h + pad * 2;
   const x = c.getContext('2d'); x.translate(pad, pad); x.lineJoin = 'round';
   x.strokeStyle = x.fillStyle = oc; x.lineWidth = e * 2; x.stroke(s.p); x.fill(s.p);
-  if (dots) {   // screentone letters: dots in the outline colour on white
-    const t = document.createElement('canvas'); t.width = 22; t.height = 44; const y = t.getContext('2d'); y.fillStyle = '#fff'; y.fillRect(0, 0, 22, 44); y.fillStyle = oc; y.beginPath();
+  if (dots) {   // screentone letters: dots in the outline colour on the fill colour
+    const t = document.createElement('canvas'); t.width = 22; t.height = 44; const y = t.getContext('2d'); y.fillStyle = fc || P.fill; y.fillRect(0, 0, 22, 44); y.fillStyle = oc; y.beginPath();
     for (const [px, py] of [[0, 0], [22, 0], [0, 44], [22, 44], [11, 22]]) { y.moveTo(px + 5.2, py); y.arc(px, py, 5.2, 0, TAU); } y.fill(); x.fillStyle = x.createPattern(t, 'repeat');
   } else x.fillStyle = fc;
   x.fill(s.p); baked.set(key, c); return c;
@@ -285,8 +336,9 @@ function sfx(name, x, y, { size = 64, rot = -0.14, life = 0.95, col, edge, dots 
     g.drawImage(c, -c.width / 2 * sc, -c.height / 2 * sc, c.width * sc, c.height * sc);
   });
 }
-// two lettering styles: hollow (white with an ink edge) and dotted (screentone letters)
-const hollow = () => ({ col: '#ffffff', edge: '#1d1a4a' }), dotted = () => ({ dots: true, edge: '#1d1a4a' });
+// two lettering styles: hollow (paper with an ink edge) and dotted (screentone letters)
+const hollow = () => ({ col: P.sfx[1], edge: P.sfx[0] }), dotted = () => ({ dots: true, col: P.sfx[1], edge: P.sfx[0] });
+refreshTheme();
 
 // ───────── for components ─────────
 const at = (el, fx = 0.5, fy = 0.5) => { const b = el.getBoundingClientRect(); return { x: b.left + scrollX + b.width * fx, y: b.top + scrollY + b.height * fy, w: b.width, h: b.height }; };
@@ -323,11 +375,11 @@ const define = (tag, cls) => { if (!customElements.get(tag)) customElements.defi
 
 const api = window.SakugaFX = {
   version: 1, paused: false,
-  get P() { return P; }, get calm() { return calm; }, get now() { return now; },
+  get P() { return P; }, get calm() { return calm; }, get now() { return now; }, get themeVer() { return themeVer; },
   TAU, clamp, lerp, rnd, Spring,
   advance, later, persist, blob, shape, get g() { return g; },
   puff, burst, shards, ring, splash, slash, lines, ticks, donut, wob, kira, sfx, hollow, dotted,
-  at, esc, squashy, Base, define,
+  at, esc, squashy, Base, define, refreshTheme, setTheme, resetTheme,
 };
 })();
 // <<< sakuga core

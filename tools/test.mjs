@@ -5,7 +5,7 @@ import { rmSync, mkdtempSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 const URL_ = process.argv[2] || 'http://localhost:8000/gallery/';
-const CHROME = process.env.CHROME || ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'].find(existsSync);
+const CHROME = process.env.CHROME || ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', 'C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'].find(existsSync);
 const PORT = 9800 + Math.floor(Math.random() * 150), PROFILE = mkdtempSync(join(tmpdir(), 'skv-'));
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${PROFILE}`, '--no-first-run', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -57,5 +57,10 @@ check('one shared core', (await ev('window.SakugaFX.version')) === 1);
 { await ev(`(() => { const f = document.createElement('form'); f.id = 'tf'; f.innerHTML = '<sakuga-checkbox name="c" checked></sakuga-checkbox><sakuga-slider name="s" value="42"></sakuga-slider><sakuga-rating name="r" value="3"></sakuga-rating><sakuga-toggle name="t" checked></sakuga-toggle>'; document.body.append(f); })()`); await sleep(300);
   check('forms: values are sent with a form', (await ev(`new URLSearchParams(new FormData(document.getElementById('tf'))).toString()`)) === 'c=on&s=42&r=3&t=on', await ev(`new URLSearchParams(new FormData(document.getElementById('tf'))).toString()`)); }
 check('no horizontal scroll at 390', (await ev('document.documentElement.scrollWidth')) <= 390, await ev('document.documentElement.scrollWidth'));
+{ await ev(`SakugaFX.setTheme({ card: '#181b28', ink: '#eef0ff', pri: '#7c7aff', acc: '#ff5fa8', soft: '#31385c', track: '#2a2f4a', line: '#959cff' })`); await sleep(150);
+  check('theme: setTheme updates canvas palette P', (await ev(`SakugaFX.P.fill === '#181b28' && SakugaFX.P.line === '#959cff'`)), await ev('JSON.stringify(SakugaFX.P)'));
+  check('theme: toggle adapts sprite colors', (await ev(`(() => { const cv = document.querySelector('sakuga-toggle').shadowRoot.querySelector('canvas'); const d = cv.getContext('2d').getImageData(150, 232, 1, 1).data; return d[3] > 0 && d[0] < 135; })()`)));
+  await ev(`SakugaFX.resetTheme()`); await sleep(150);
+  check('theme: resetTheme restores default canvas palette', (await ev(`(SakugaFX.P.fill === '#ffffff' || SakugaFX.P.fill === '#fff') && SakugaFX.P.line === '#5a4fd8'`)), await ev('JSON.stringify(SakugaFX.P)')); }
 if (logs.length) { console.log(logs.join('\n')); fails++; }
 ws.close(); chrome.kill(); await sleep(300); try { rmSync(PROFILE, { recursive: true, force: true }); } catch {} process.exit(fails ? 1 : 0);
