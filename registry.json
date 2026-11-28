@@ -232,6 +232,215 @@
         }
       ],
       "docs": "Sakuga Tooltip is a plain script that registers a custom element. Load /sakuga-vfx/tooltip.js with a script tag (not a module), then use <sakuga-tooltip text=\"Helpful hint!\"></sakuga-tooltip>. Opens on hover, focus and tap; Escape closes it. More: https://sakuga-vfx.vercel.app"
+    },
+    {
+      "name": "select",
+      "type": "registry:file",
+      "title": "Sakuga Select",
+      "description": "A dropdown whose menu springs open with corner puffs and a spinning chevron; picking an option snaps it shut by shrinking and pops the trigger with wedges, speed lines and a hollow カチッ. One file, no dependencies, defines <sakuga-select>.",
+      "categories": [
+        "select",
+        "dropdown",
+        "input",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "select/select.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/select.js"
+        }
+      ],
+      "docs": "Sakuga Select is a plain script that registers a custom element. Load /sakuga-vfx/select.js with a script tag (not a module), then use <sakuga-select label=\"Polling rate\"><option value=\"1000\" selected>1000 Hz</option><option value=\"8000\">8000 Hz</option></sakuga-select>. Read and set el.value; listen for change. Works in forms with a name."
+    },
+    {
+      "name": "segmented",
+      "type": "registry:file",
+      "title": "Sakuga Segmented",
+      "description": "A pill switcher whose active capsule stretches as it dashes across the track, slams home with speed lines, puffs and wedges, and adds wobble arcs at the ends. One file, no dependencies, defines <sakuga-segmented>.",
+      "categories": [
+        "segmented",
+        "tabs",
+        "radio",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "segmented/segmented.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/segmented.js"
+        }
+      ],
+      "docs": "Sakuga Segmented is a plain script that registers a custom element. Load /sakuga-vfx/segmented.js with a script tag (not a module), then use <sakuga-segmented label=\"Profile\" name=\"profile\"><option value=\"1\" selected>P1</option><option value=\"2\">P2</option></sakuga-segmented>. Read el.value or el.selected; listen for change. Works in forms with a name."
+    },
+    {
+      "name": "dialog",
+      "type": "registry:file",
+      "title": "Sakuga Dialog",
+      "description": "A modal panel that drops in and lands with squash, bottom-corner dust puffs, wedges and wobble arcs, and leaves by shrinking. One file, no dependencies, defines <sakuga-dialog>.",
+      "categories": [
+        "dialog",
+        "modal",
+        "overlay",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "dialog/dialog.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/dialog.js"
+        }
+      ],
+      "docs": "Sakuga Dialog is a plain script that registers a custom element. Load /sakuga-vfx/dialog.js with a script tag (not a module), then put <sakuga-dialog title=\"Reset profile\"><p>...</p><sakuga-button slot=\"footer\">Confirm</sakuga-button></sakuga-dialog> on the page and call el.show() and el.close()."
+    },
+    {
+      "name": "number",
+      "type": "registry:file",
+      "title": "Sakuga Number",
+      "description": "A numeric stepper whose buttons squash, kicking the number on a spring with puffs and wedges; holding repeats with speed lines, and hitting min or max shudders the box with wobble arcs. One file, no dependencies, defines <sakuga-number>.",
+      "categories": [
+        "number",
+        "stepper",
+        "input",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "number/number.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/number.js"
+        }
+      ],
+      "docs": "Sakuga Number is a plain script that registers a custom element. Load /sakuga-vfx/number.js with a script tag (not a module), then use <sakuga-number label=\"Actuation\" value=\"1.20\" min=\"0.1\" max=\"4.0\" step=\"0.05\" unit=\"mm\"></sakuga-number>. Read and set el.value; fires input and change. Works in forms with a name."
+    },
+    {
+      "name": "badge",
+      "type": "registry:file",
+      "title": "Sakuga Badge",
+      "description": "A flat-ink status pill that sits plain at rest, bounces with a glint, wedges and a puff on status change or pop(), and shrinks away with chips when dismissed. One file, no dependencies, defines <sakuga-badge>.",
+      "categories": [
+        "badge",
+        "status",
+        "tag",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "badge/badge.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/badge.js"
+        }
+      ],
+      "docs": "Sakuga Badge is a plain script that registers a custom element. Load /sakuga-vfx/badge.js with a script tag (not a module), then use <sakuga-badge tone=\"primary\" dot>WebHID</sakuga-badge>. Call el.pop() or change tone to animate; add dismissible for a close button."
+    },
+    {
+      "name": "menu",
+      "type": "registry:file",
+      "title": "Sakuga Menu",
+      "description": "A dropdown action menu that springs open with corner puffs and a ring, flashes the chosen item for a beat, snaps shut by shrinking and throws wedges, speed lines and a hollow ポン. One file, no dependencies, defines <sakuga-menu>.",
+      "categories": [
+        "menu",
+        "popover",
+        "dropdown",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "menu/menu.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/menu.js"
+        }
+      ],
+      "docs": "Sakuga Menu is a plain script that registers a custom element. Load /sakuga-vfx/menu.js with a script tag (not a module), then list actions as <option>s inside <sakuga-menu label=\"Profile\">...</sakuga-menu>. Listen for sakuga:select (e.detail: index, value, label)."
+    },
+    {
+      "name": "color-picker",
+      "type": "registry:file",
+      "title": "Sakuga Color Picker",
+      "description": "An RGB swatch picker whose popover springs open with a 2D saturation-brightness pad, hue bar, presets and hex input; dragging lags on springs and picking throws glints, chips and wedges. One file, no dependencies, defines <sakuga-color-picker>.",
+      "categories": [
+        "color-picker",
+        "color",
+        "input",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "color-picker/color-picker.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/color-picker.js"
+        }
+      ],
+      "docs": "Sakuga Color Picker is a plain script that registers a custom element. Load /sakuga-vfx/color-picker.js with a script tag (not a module), then use <sakuga-color-picker label=\"Key color\" value=\"#ff5fa8\" name=\"color\"></sakuga-color-picker>. Read el.value; fires input and change. Works in forms with a name."
+    },
+    {
+      "name": "search",
+      "type": "registry:file",
+      "title": "Sakuga Search",
+      "description": "An expandable search pill that dashes wide on a spring with speed lines and a landing puff, kicks dust while typing, clears with a pink slash, and collapses with wobble arcs. One file, no dependencies, defines <sakuga-search>.",
+      "categories": [
+        "search",
+        "input",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "search/search.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/search.js"
+        }
+      ],
+      "docs": "Sakuga Search is a plain script that registers a custom element. Load /sakuga-vfx/search.js with a script tag (not a module), then use <sakuga-search label=\"Search\" placeholder=\"Search…\" name=\"q\"></sakuga-search>. Fires input, change and sakuga:search. Works in forms with a name."
+    },
+    {
+      "name": "accordion",
+      "type": "registry:file",
+      "title": "Sakuga Accordion",
+      "description": "A collapsible card whose header squashes on press, springs open with downward speed lines, bottom-corner dust puffs and wedges, and folds shut with a puff and wobble arcs. One file, no dependencies, defines <sakuga-accordion>.",
+      "categories": [
+        "accordion",
+        "collapsible",
+        "disclosure",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "accordion/accordion.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/accordion.js"
+        }
+      ],
+      "docs": "Sakuga Accordion is a plain script that registers a custom element. Load /sakuga-vfx/accordion.js with a script tag (not a module), then use <sakuga-accordion summary=\"Details\"><p>...</p></sakuga-accordion>. Read el.open; fires change."
+    },
+    {
+      "name": "spinner",
+      "type": "registry:file",
+      "title": "Sakuga Spinner",
+      "description": "A flat-ink cel-shaded loader that orbits comet arcs while active and snaps into a crisp check with a back-layer burst, glint, wedges and puff when done() is called. One file, no dependencies, defines <sakuga-spinner>.",
+      "categories": [
+        "spinner",
+        "loading",
+        "status",
+        "anime",
+        "animation"
+      ],
+      "files": [
+        {
+          "path": "spinner/spinner.js",
+          "type": "registry:file",
+          "target": "~/public/sakuga-vfx/spinner.js"
+        }
+      ],
+      "docs": "Sakuga Spinner is a plain script that registers a custom element. Load /sakuga-vfx/spinner.js with a script tag (not a module), then use <sakuga-spinner active label=\"Connecting\">Connecting…</sakuga-spinner>. Call el.done() to land the check."
     }
   ]
 }

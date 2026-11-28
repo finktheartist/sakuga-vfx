@@ -19,6 +19,16 @@ Every effect is drawn in code on one canvas over the page. The lettering was pai
 | [Rating](rating/) | `<sakuga-rating>` | Stars pop in one after another; five gets a burst. |
 | [Toast](toast/) | `<sakuga-toast>` | Streaks in as a smear, lands in dust with ズザッ, leaves by shrinking. |
 | [Tooltip](tooltip/) | `<sakuga-tooltip>` | The hint springs out like a speech bubble with puffs and カチッ. |
+| [Select](select/) | `<sakuga-select>` | The menu springs open with corner puffs and a spinning chevron; picking snaps it shut with wedges, speed lines and カチッ. |
+| [Segmented](segmented/) | `<sakuga-segmented>` | The active pill smears across the capsule track, slams home with puffs and wedges, and wobbles at the ends. |
+| [Dialog](dialog/) | `<sakuga-dialog>` | The modal drops in with squash, corner dust puffs, wedges and wobble arcs, and leaves by shrinking. |
+| [Number](number/) | `<sakuga-number>` | Buttons squash and kick the value on a spring; holding repeats with speed lines, and hitting min/max shudders with wobble arcs. |
+| [Badge](badge/) | `<sakuga-badge>` | Flat-ink status pill that pops with a glint and wedges on update, and shrinks away with chips when dismissed. |
+| [Menu](menu/) | `<sakuga-menu>` | Action menu that springs open with a ring and puffs, flashes the picked item and confirms with ポン. |
+| [Color Picker](color-picker/) | `<sakuga-color-picker>` | Swatch picker with 2D pad, hue bar, presets and hex input; dragging lags on springs and picking throws glints and chips. |
+| [Search](search/) | `<sakuga-search>` | Expandable search pill that dashes wide on a spring, kicks dust while typing and clears with a pink slash. |
+| [Accordion](accordion/) | `<sakuga-accordion>` | Collapsible card that springs open with speed lines, corner puffs and wedges, and folds shut with wobble arcs. |
+| [Spinner](spinner/) | `<sakuga-spinner>` | Flat-ink cel-shaded loader that orbits while active and snaps into a burst checkmark on `done()`. |
 
 ## The look
 

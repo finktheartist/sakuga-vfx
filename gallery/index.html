@@ -41,7 +41,7 @@
   <header>
     <div>
       <h1>Sakuga VFX</h1>
-      <p class="lede">Twelve ordinary controls that react like anime: squash and overshoot on springs, and drawn effects (smoke, impact bursts, splashes, slashes) with manga sound-effect lettering. Each one is a single file with no dependencies.</p>
+      <p class="lede">Twenty-one ordinary controls that react like anime: squash and overshoot on springs, and drawn effects (smoke, impact bursts, splashes, slashes) with manga sound-effect lettering. Each one is a single file with no dependencies.</p>
       <p class="links">
         <a class="pill" href="https://github.com/finktheartist/sakuga-vfx" target="_blank" rel="noopener">The repo on GitHub <span aria-hidden="true">&#8599;</span></a>
         <a class="pill" href="https://x.com/crtvTeknologist" target="_blank" rel="noopener">@crtvTeknologist on X <span aria-hidden="true">&#8599;</span></a>
@@ -63,6 +63,16 @@
 <script src="../rating/rating.js"></script>
 <script src="../toast/toast.js"></script>
 <script src="../tooltip/tooltip.js"></script>
+<script src="../select/select.js"></script>
+<script src="../segmented/segmented.js"></script>
+<script src="../dialog/dialog.js"></script>
+<script src="../number/number.js"></script>
+<script src="../badge/badge.js"></script>
+<script src="../menu/menu.js"></script>
+<script src="../color-picker/color-picker.js"></script>
+<script src="../search/search.js"></script>
+<script src="../accordion/accordion.js"></script>
+<script src="../spinner/spinner.js"></script>
 <script>
 // The gallery: every control live on one page, with its install line and a prompt that hands a coding agent the real file.
 const REPO = 'finktheartist/sakuga-vfx';
@@ -79,6 +89,16 @@ const ITEMS = [
   { id: 'rating', name: 'Rating', tag: 'sakuga-rating', how: 'Give it five.', html: '<sakuga-rating label="Rating"></sakuga-rating>' },
   { id: 'toast', name: 'Toast', tag: 'sakuga-toast', how: 'Press Save.', html: '<div class="toastwrap"><sakuga-button variant="secondary" data-demo="save">Save</sakuga-button><sakuga-toast></sakuga-toast></div>' },
   { id: 'tooltip', name: 'Tooltip', tag: 'sakuga-tooltip', how: 'Hover, focus or tap the button.', html: '<sakuga-tooltip text="Helpful hint!"></sakuga-tooltip>' },
+  { id: 'select', name: 'Select', tag: 'sakuga-select', how: 'Open it and pick a rate.', html: '<sakuga-select label="Polling rate"><option value="1000" selected>1000 Hz</option><option value="2000">2000 Hz</option><option value="4000">4000 Hz</option><option value="8000">8000 Hz</option></sakuga-select>' },
+  { id: 'segmented', name: 'Segmented', tag: 'sakuga-segmented', how: 'Jump across the slots, or use the arrow keys.', html: '<sakuga-segmented label="Profile"><option value="1" selected>P1</option><option value="2">P2</option><option value="3">P3</option><option value="4">P4</option></sakuga-segmented>' },
+  { id: 'dialog', name: 'Dialog', tag: 'sakuga-dialog', how: 'Open the modal, then press Escape or close it.', html: '<sakuga-button variant="secondary" data-demo="dialog">Open dialog</sakuga-button><sakuga-dialog title="Reset profile"><p style="margin:0">Restore onboard Profile 1 to factory defaults?</p><sakuga-button slot="footer" variant="secondary" data-demo="dlg-close">Close</sakuga-button></sakuga-dialog>' },
+  { id: 'number', name: 'Number', tag: 'sakuga-number', how: 'Tap or hold + / −, or push past the limit.', html: '<sakuga-number label="Actuation" value="1.20" min="0.1" max="4.0" step="0.05" unit="mm"></sakuga-number>' },
+  { id: 'badge', name: 'Badge', tag: 'sakuga-badge', how: 'Cycle its status, or dismiss the tag.', html: '<div class="toastwrap"><sakuga-badge tone="primary" dot data-demo="badge">WebHID</sakuga-badge><sakuga-button variant="secondary" data-demo="badge-btn">Cycle status</sakuga-button></div>' },
+  { id: 'menu', name: 'Menu', tag: 'sakuga-menu', how: 'Open the menu and pick an action.', html: '<sakuga-menu label="Profile"><option value="apply">Apply to keyboard</option><option value="duplicate">Duplicate profile</option><option value="export">Export JSON</option><hr><option value="delete" data-tone="danger">Delete</option></sakuga-menu>' },
+  { id: 'color-picker', name: 'Color picker', tag: 'sakuga-color-picker', how: 'Open the swatch, drag the pad or pick a preset.', html: '<sakuga-color-picker label="Key color" value="#ff5fa8"></sakuga-color-picker>' },
+  { id: 'search', name: 'Search', tag: 'sakuga-search', how: 'Tap the icon to dash wide, type, or slash-clear.', html: '<sakuga-search label="Search switches" placeholder="Search switches…"></sakuga-search>' },
+  { id: 'accordion', name: 'Accordion', tag: 'sakuga-accordion', how: 'Tap a header to spring open; siblings in the group fold shut.', html: '<div style="display:grid;gap:10px;width:100%;max-width:264px;--sk-accordion-width:100%"><sakuga-accordion group="gal-acc" summary="Rapid Trigger"><p style="margin:0">Actuates and resets on every 0.05 mm of travel.</p></sakuga-accordion><sakuga-accordion group="gal-acc" summary="SOCD Cleaning"><p style="margin:0">Resolves opposing keys with last-input priority.</p></sakuga-accordion><sakuga-accordion group="gal-acc" summary="8000 Hz Polling"><p style="margin:0">Streams key travel reports every 0.125 ms.</p></sakuga-accordion></div>' },
+  { id: 'spinner', name: 'Spinner', tag: 'sakuga-spinner', how: 'Watch it orbit, then press Finish to land the check.', html: '<div class="toastwrap"><sakuga-spinner active label="Connecting">Connecting…</sakuga-spinner><sakuga-button variant="secondary" data-demo="spin-done">Finish</sakuga-button></div>' },
 ];
 
 // What each prompt says about wiring its component in. The rest of the prompt is the same for all of them.
@@ -111,6 +131,28 @@ const WIRE = {
     'The element keeps its place on the page while the toast is hidden. Position it yourself, for example position: fixed; left: 24px; bottom: 24px.'],
   tooltip: ['Use <sakuga-tooltip text="..." label="..."></sakuga-tooltip> next to the thing it explains. text is the hint; label is what a screen reader calls the button ("Help" by default).',
     'It opens on hover, focus and tap, and Escape closes it. Whatever is inside the element replaces the "?" on the button.'],
+  select: ['List the choices as <option>s inside it: <sakuga-select label="Polling rate" name="rate"><option value="1000" selected>1000 Hz</option><option value="8000">8000 Hz</option></sakuga-select>.',
+    'Read and set el.value. It fires change when the user picks an option. With a name attribute it is sent with its form.',
+    'It is 224 pixels wide by default; set --sk-select-width to change that.'],
+  segmented: ['List the choices as <option>s inside it: <sakuga-segmented label="Profile" name="profile"><option value="1" selected>P1</option><option value="2">P2</option></sakuga-segmented>.',
+    'Read and set el.value or el.selected. It fires change (e.detail has index, value and label). With a name attribute it is sent with its form.'],
+  dialog: ['Put <sakuga-dialog title="..."><p>...</p><sakuga-button slot="footer">Confirm</sakuga-button></sakuga-dialog> on the page and call el.show() and el.close().',
+    'Listen for sakuga:open and sakuga:close (e.detail.reason). Escape and clicking the backdrop close it unless the static attribute is set.',
+    'It is up to 420 pixels wide; set --sk-dialog-width to change that.'],
+  number: ['Use <sakuga-number label="Actuation" value="1.20" min="0.1" max="4.0" step="0.05" unit="mm" name="actuation"></sakuga-number>.',
+    'Read and set el.value. It fires input and change. Holding + or − repeats; hitting min or max shudders the box. With a name attribute it is sent with its form.'],
+  badge: ['Use <sakuga-badge tone="primary" dot>WebHID</sakuga-badge> (tones: neutral, primary, accent, ink; add dismissible for a close button).',
+    'Call el.pop("Connected") or change el.tone to bounce with a glint and puff. Listen for sakuga:dismiss when dismissed.'],
+  menu: ['List actions as <option>s (and <hr> dividers) inside <sakuga-menu label="Profile">...</sakuga-menu>.',
+    'Listen for sakuga:select (e.detail has index, value and label). Add align="right" to align with the right edge.'],
+  'color-picker': ['Use <sakuga-color-picker label="Key color" value="#ff5fa8" name="color"></sakuga-color-picker>.',
+    'Read and set el.value (#rrggbb). Fires input while dragging and change on commit. Works in forms with a name.'],
+  search: ['Use <sakuga-search label="Search" placeholder="Search…" name="q"></sakuga-search> (add expanded to keep it open).',
+    'Read and set el.value. Fires input, change and sakuga:search (on Enter). Works in forms with a name.'],
+  accordion: ['Use <sakuga-accordion summary="Details"><p>...</p></sakuga-accordion> (add group="..." for mutually exclusive sections).',
+    'Read and set el.open, or call el.toggle(). Fires change (e.detail.open). Width defaults to 272px (--sk-accordion-width).'],
+  spinner: ['Use <sakuga-spinner active label="Connecting">Connecting…</sakuga-spinner>.',
+    'Call el.done() when finished to burst into a check (fires sakuga:done), or el.start() to spin again.'],
 };
 const SKILL = { url: new URL('../skills/sakuga-vfx/SKILL.md', location.href).href, install: `npx skills add ${REPO}` };
 const fileUrl = (id) => new URL(`../${id}/${id}.js`, location.href).href;
@@ -140,8 +182,14 @@ for (const it of ITEMS) {
   if (it.tag === 'sakuga-button' && el.dataset.demo === 'primary') el.addEventListener('click', () => { say('Clicked'); setTimeout(() => el.done(), 760); });
   else if (it.tag === 'sakuga-button') el.addEventListener('click', () => say('Clicked'));
   else if (it.tag === 'sakuga-toast') card.querySelector('[data-demo=save]').addEventListener('click', () => el.show('Saved successfully!'));
+  else if (it.tag === 'sakuga-dialog') { card.querySelector('[data-demo=dialog]').addEventListener('click', () => el.show()); card.querySelector('[data-demo=dlg-close]').addEventListener('click', () => el.close('button')); el.addEventListener('sakuga:open', () => say('sakuga:open')); el.addEventListener('sakuga:close', (e) => say(`sakuga:close (${e.detail.reason})`)); }
+  else if (it.tag === 'sakuga-badge') { const st = [['primary', 'WebHID'], ['accent', 'HTTP Local'], ['ink', 'Demo Mode'], ['neutral', 'Offline']]; let k = 0; card.querySelector('[data-demo=badge-btn]').addEventListener('click', () => { k = (k + 1) % st.length; el.textContent = st[k][1]; el.tone = st[k][0]; say(`tone: ${st[k][0]} (${st[k][1]})`); }); }
+  else if (it.tag === 'sakuga-menu') el.addEventListener('sakuga:select', (e) => say(`sakuga:select: ${e.detail.label}`));
+  else if (it.tag === 'sakuga-search') { el.addEventListener('input', () => say(`input: ${el.value}`)); el.addEventListener('sakuga:search', (e) => say(`sakuga:search: ${e.detail.value}`)); }
+  else if (it.tag === 'sakuga-accordion') for (const a of card.querySelectorAll('sakuga-accordion')) a.addEventListener('change', (e) => say(`${a.getAttribute('summary')}: ${e.detail.open ? 'open' : 'closed'}`));
+  else if (it.tag === 'sakuga-spinner') { const btn = card.querySelector('[data-demo=spin-done]'); btn.addEventListener('click', () => { if (el.completed) { el.textContent = 'Connecting…'; el.start(); btn.textContent = 'Finish'; say('active'); } else { el.textContent = 'Connected'; el.done(); btn.textContent = 'Spin again'; } }); el.addEventListener('sakuga:done', () => say('sakuga:done')); }
   else if (it.tag === 'sakuga-progress') el.addEventListener('sakuga:done', () => say('sakuga:done'));
-  else if (it.tag === 'sakuga-tabs') el.addEventListener('change', (e) => say(`Tab: ${e.detail.label}`));
+  else if (it.tag === 'sakuga-tabs' || it.tag === 'sakuga-segmented') el.addEventListener('change', (e) => say(`${it.name}: ${e.detail.label}`));
   else el.addEventListener('change', () => say(`change: ${it.tag === 'sakuga-toggle' || it.tag === 'sakuga-checkbox' ? (el.checked ? 'on' : 'off') : el.value}`));
 }
 // Copying needs the clipboard API, which plain http (other than localhost) does not have, so fall back to a selected textarea.

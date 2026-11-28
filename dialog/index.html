@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sakuga Dialog</title>
+<style>
+  :root { --page: #ffffff; --text: #1d1a4a; --mute: #8580b0; }
+  html { overflow-x: clip; background: var(--page); }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--page); color: var(--text); font: 15px/1.45 -apple-system, "Helvetica Neue", "Segoe UI", sans-serif; overflow-x: clip; }
+  main { width: min(640px, 100vw - 32px); padding: 40px 0 60px; }
+  h1 { margin: 0; font: italic 800 26px/1.1 "Avenir Next", "Nunito", -apple-system, "Segoe UI", sans-serif; }
+  .sub { margin: 4px 0 0; color: var(--mute); }
+  .stage { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 24px; min-height: 240px; padding: 40px 0; }
+  .hint, .said { margin: 0 4px; color: var(--mute); } .said { min-height: 1.45em; margin-top: 8px; font-size: 13px; }
+  .openbtn { padding: 12px 22px; border: 3px solid #1d1a4a; border-radius: 14px; background: #fff; box-shadow: 5px 6px 0 #b8b3ff; font: italic 800 17px/1.1 "Avenir Next", "Nunito", -apple-system, "Segoe UI", sans-serif; color: #1d1a4a; cursor: pointer; }
+  .footbtn { padding: 9px 16px; border: 2.8px solid #1d1a4a; border-radius: 12px; background: #fff; box-shadow: 4px 4px 0 #b8b3ff; font: 700 14px/1.2 -apple-system, "Segoe UI", sans-serif; color: #1d1a4a; cursor: pointer; }
+  .footbtn.pri { background: #8f8df7; color: #fff; }
+  code { font-size: 13px; }
+  .embed body { place-items: start center; min-height: 0; } .embed h1, .embed .sub, .embed .hint { display: none; } .embed main { padding: 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dialog</h1>
+  <p class="sub">A modal panel that slams in with dust puffs and leaves by shrinking.</p>
+  <div class="stage">
+    <button class="openbtn" id="openBtn" type="button">Open dialog</button>
+    <sakuga-dialog id="el" title="Reset profile">
+      <p style="margin:0">Restore onboard Profile 1 to factory actuation and lighting defaults?</p>
+      <button class="footbtn" slot="footer" id="cancelBtn" type="button">Cancel</button>
+      <button class="footbtn pri" slot="footer" id="okBtn" type="button">Confirm</button>
+    </sakuga-dialog>
+  </div>
+  <p class="hint">Click the button to open. Press Escape or click the backdrop to close.</p>
+  <p class="said" aria-live="polite"></p>
+</main>
+<script src="dialog.js"></script>
+<script>
+const Q = new URLSearchParams(location.search), el = document.getElementById('el');
+if (Q.get('embed') === '1') document.documentElement.classList.add('embed');
+const say = (t) => { document.querySelector('.said').textContent = t; };
+document.getElementById('openBtn').addEventListener('click', () => el.show());
+document.getElementById('cancelBtn').addEventListener('click', () => el.close('cancel'));
+document.getElementById('okBtn').addEventListener('click', () => el.close('confirm'));
+el.addEventListener('sakuga:open', () => say('sakuga:open'));
+el.addEventListener('sakuga:close', (e) => say('sakuga:close (' + e.detail.reason + ')'));
+</script>
+</body>
+</html>

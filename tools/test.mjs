@@ -5,7 +5,7 @@ import { rmSync, mkdtempSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 const URL_ = process.argv[2] || 'http://localhost:8000/gallery/';
-const CHROME = process.env.CHROME || ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'].find(existsSync);
+const CHROME = process.env.CHROME || ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', 'C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'].find(existsSync);
 const PORT = 9800 + Math.floor(Math.random() * 150), PROFILE = mkdtempSync(join(tmpdir(), 'skv-'));
 const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${PROFILE}`, '--no-first-run', '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -32,7 +32,7 @@ const type = async (text) => { for (const ch of text) { await send('Input.dispat
 let fails = 0;
 const check = (name, ok, got) => { if (!ok) fails++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}${got !== undefined ? `  ->  ${got}` : ''}`); };
 
-check('all eleven elements are defined', (await ev(`['button','toggle','slider','checkbox','radio','input','tabs','progress','rating','toast','tooltip'].every((n) => customElements.get('sakuga-' + n))`)));
+check('all twenty-one elements are defined', (await ev(`['button','toggle','slider','checkbox','radio','input','tabs','progress','rating','toast','tooltip','select','segmented','dialog','number','badge','menu','color-picker','search','accordion','spinner'].every((n) => customElements.get('sakuga-' + n))`)));
 check('one shared core', (await ev('window.SakugaFX.version')) === 1);
 { await tap('sakuga-button[data-demo=primary] >>> .btn'); await sleep(1200); check('button: tap fires click and done() lands the check', +(await ev(`${find('sakuga-button[data-demo=primary] >>> .btn')}.style.getPropertyValue('--ok')`)) > 0.5); }
 { await tap('sakuga-toggle >>> .tog'); await sleep(500); check('toggle: tap turns it on', await ev(`document.querySelector('sakuga-toggle').checked`));
@@ -54,8 +54,62 @@ check('one shared core', (await ev('window.SakugaFX.version')) === 1);
   check('progress: set(0.5) eases to half', Math.abs((await ev(`+getComputedStyle(${find('sakuga-progress >>> .prog')}).getPropertyValue('--v')`)) - 0.5) < 0.02); }
 { await tap('[data-demo=save] >>> .btn'); await sleep(900); check('toast: it arrives', await ev(`document.querySelector('sakuga-toast').open`)); await sleep(3400); check('toast: it leaves', !(await ev(`document.querySelector('sakuga-toast').open`))); }
 { await tap('sakuga-tooltip >>> .help'); await sleep(600); check('tooltip: tap opens it', await ev(`document.querySelector('sakuga-tooltip').open`)); await key('Escape', 27); await sleep(300); check('tooltip: Escape closes it', !(await ev(`document.querySelector('sakuga-tooltip').open`))); }
-{ await ev(`(() => { const f = document.createElement('form'); f.id = 'tf'; f.innerHTML = '<sakuga-checkbox name="c" checked></sakuga-checkbox><sakuga-slider name="s" value="42"></sakuga-slider><sakuga-rating name="r" value="3"></sakuga-rating><sakuga-toggle name="t" checked></sakuga-toggle>'; document.body.append(f); })()`); await sleep(300);
-  check('forms: values are sent with a form', (await ev(`new URLSearchParams(new FormData(document.getElementById('tf'))).toString()`)) === 'c=on&s=42&r=3&t=on', await ev(`new URLSearchParams(new FormData(document.getElementById('tf'))).toString()`)); }
+{ await tap('sakuga-select >>> .trig'); await sleep(450); check('select: tap opens menu', await ev(`document.querySelector('sakuga-select').open`));
+  await tap('sakuga-select >>> .opt:nth-child(4)'); await sleep(450); check('select: picking option sets value and closes', (await ev(`document.querySelector('sakuga-select').value`)) === '8000' && !(await ev(`document.querySelector('sakuga-select').open`))); }
+{ await tap('sakuga-segmented >>> button:nth-of-type(4)'); await sleep(500); check('segmented: tap selects P4', (await ev(`document.querySelector('sakuga-segmented').value`)) === '4');
+  await ev(`${find('sakuga-segmented >>> button:nth-of-type(4)')}.focus()`); await key('ArrowLeft', 37); await sleep(300); check('segmented: arrow key moves back', (await ev(`document.querySelector('sakuga-segmented').value`)) === '3'); }
+{ await tap('[data-demo=dialog] >>> .btn'); await sleep(500); check('dialog: open button opens it', await ev(`document.querySelector('sakuga-dialog').open`));
+  await key('Escape', 27); await sleep(450); check('dialog: Escape closes it', !(await ev(`document.querySelector('sakuga-dialog').open`))); }
+{ await tap('sakuga-number >>> .inc'); await sleep(350); check('number: + button increments by step', (await ev(`document.querySelector('sakuga-number').value`)) === 1.25);
+  await ev(`${find('sakuga-number >>> input')}.focus()`); await key('ArrowDown', 40); await sleep(250); check('number: ArrowDown steps back', (await ev(`document.querySelector('sakuga-number').value`)) === 1.2); }
+{ await tap('[data-demo=badge-btn] >>> .btn'); await sleep(400); check('badge: cycling updates tone', (await ev(`document.querySelector('sakuga-badge').tone`)) === 'accent'); }
+{ await tap('sakuga-menu >>> .trig'); await sleep(450); check('menu: tap opens menu', await ev(`document.querySelector('sakuga-menu').open`));
+  await ev(`window.__menuPicked = ''; document.querySelector('sakuga-menu').addEventListener('sakuga:select', (e) => { window.__menuPicked = e.detail.value; }, { once: true });`);
+  await tap('sakuga-menu >>> .item:nth-of-type(2)'); await sleep(450); check('menu: picking fires sakuga:select and closes', (await ev(`window.__menuPicked`)) === 'duplicate' && !(await ev(`document.querySelector('sakuga-menu').open`))); }
+{ await tap('#grid sakuga-color-picker >>> .trig'); await sleep(450); check('color-picker: tap opens popover', await ev(`document.querySelector('#grid sakuga-color-picker').open`));
+  await tap('#grid sakuga-color-picker >>> .pre:nth-child(3)'); await sleep(350); check('color-picker: preset updates hex value', (await ev(`document.querySelector('#grid sakuga-color-picker').value`)) === '#38bdf8');
+  await key('Escape', 27); await sleep(350); check('color-picker: Escape closes popover', !(await ev(`document.querySelector('#grid sakuga-color-picker').open`))); }
+{ await tap('sakuga-search >>> .go'); await sleep(450); check('search: tap expands bar', await ev(`document.querySelector('sakuga-search').expanded`));
+  await type('magnetic'); await sleep(300); check('search: typing sets value', (await ev(`document.querySelector('sakuga-search').value`)) === 'magnetic');
+  await tap('sakuga-search >>> .clr'); await sleep(350); check('search: clear button clears value', (await ev(`document.querySelector('sakuga-search').value`)) === ''); }
+{ await tap('sakuga-accordion >>> .head'); await sleep(500); check('accordion: tap opens it', await ev(`document.querySelector('sakuga-accordion').open`));
+  await tap('sakuga-accordion >>> .head'); await sleep(500); check('accordion: second tap closes it', !(await ev(`document.querySelector('sakuga-accordion').open`))); }
+{ await tap('[data-demo=spin-done] >>> .btn'); await sleep(450); check('spinner: done() lands check and stops active', await ev(`document.querySelector('sakuga-spinner').completed && !document.querySelector('sakuga-spinner').active`)); }
+{ await ev(`(() => { const f = document.createElement('form'); f.id = 'tf'; f.innerHTML = '<sakuga-checkbox name="c" checked></sakuga-checkbox><sakuga-slider name="s" value="42"></sakuga-slider><sakuga-rating name="r" value="3"></sakuga-rating><sakuga-toggle name="t" checked></sakuga-toggle><sakuga-select name="p" value="8000"><option value="1000">1000</option><option value="8000">8000</option></sakuga-select><sakuga-segmented name="g" value="2"><option value="1">P1</option><option value="2">P2</option></sakuga-segmented><sakuga-number name="n" value="1.25" step="0.05"></sakuga-number><sakuga-color-picker name="col" value="#38bdf8"></sakuga-color-picker><sakuga-search name="q" value="hall"></sakuga-search>'; document.body.append(f); })()`); await sleep(300);
+  check('forms: values are sent with a form', (await ev(`new URLSearchParams(new FormData(document.getElementById('tf'))).toString()`)) === 'c=on&s=42&r=3&t=on&p=8000&g=2&n=1.25&col=%2338bdf8&q=hall', await ev(`new URLSearchParams(new FormData(document.getElementById('tf'))).toString()`)); }
 check('no horizontal scroll at 390', (await ev('document.documentElement.scrollWidth')) <= 390, await ev('document.documentElement.scrollWidth'));
+{ await tap('sakuga-select >>> .trig'); await sleep(350);
+  await ev(`document.querySelector('sakuga-input').focus()`); await sleep(200);
+  check('select: focusout closes dropdown', !(await ev(`document.querySelector('sakuga-select').open`)));
+  await ev(`(() => { const s = document.querySelector('sakuga-select'); const o = document.createElement('option'); o.value = '10000'; o.textContent = '10000 Hz'; s.append(o); })()`); await sleep(150);
+  await tap('sakuga-select >>> .trig'); await sleep(200);
+  check('select: dynamic option + aria-activedescendant', (await ev(`document.querySelector('sakuga-select').shadowRoot.querySelectorAll('.opt').length === 5 && !!document.querySelector('sakuga-select').shadowRoot.querySelector('.trig').getAttribute('aria-activedescendant')`)));
+  await key('Escape', 27); await sleep(200); }
+{ await tap('sakuga-menu >>> .trig'); await sleep(350);
+  await ev(`document.querySelector('sakuga-input').focus()`); await sleep(200);
+  check('menu: focusout closes menu', !(await ev(`document.querySelector('sakuga-menu').open`))); }
+{ await tap('#grid sakuga-color-picker >>> .trig'); await sleep(350);
+  check('color-picker: active preset chip highlighted', (await ev(`document.querySelector('#grid sakuga-color-picker').shadowRoot.querySelector('.pre.on')?.dataset.col === '#38bdf8'`)));
+  await ev(`document.querySelector('sakuga-input').focus()`); await sleep(200);
+  check('color-picker: focusout closes popover', !(await ev(`document.querySelector('#grid sakuga-color-picker').open`))); }
+{ await tap('[data-demo=dialog] >>> .btn'); await sleep(350);
+  check('dialog: open locks scroll', (await ev(`document.documentElement.style.overflow`)) === 'hidden');
+  await key('Tab', 9); await sleep(100); await key('Tab', 9); await sleep(100);
+  check('dialog: Tab stays trapped inside dialog', await ev(`(() => { const d = document.querySelector('sakuga-dialog'); return d.contains(document.activeElement) || !!d.shadowRoot.activeElement; })()`));
+  await key('Escape', 27); await sleep(350);
+  check('dialog: close restores scroll', (await ev(`document.documentElement.style.overflow`)) === ''); }
+{ await tap('sakuga-search >>> .go'); await sleep(350);
+  await ev(`document.querySelector('sakuga-input').focus()`); await sleep(350);
+  check('search: empty blur collapses bar', !(await ev(`document.querySelector('sakuga-search').expanded`))); }
+{ await ev(`(() => { const n = document.querySelector('sakuga-number'); const inp = n.shadowRoot.querySelector('input'); inp.focus(); inp.value = '99'; inp.dispatchEvent(new FocusEvent('blur')); })()`); await sleep(150);
+  check('number: blur clamps out-of-range input to max', (await ev(`document.querySelector('sakuga-number').value`)) === 4); }
+{ await ev(`(() => { const b = document.querySelector('sakuga-badge'); b.count = 3; b.dismiss(); })()`); await sleep(350);
+  const dead = await ev(`document.querySelector('sakuga-badge').dismissed`);
+  await ev(`document.querySelector('sakuga-badge').restore()`); await sleep(200);
+  check('badge: count + dismiss + restore works', dead && !(await ev(`document.querySelector('sakuga-badge').dismissed`)) && (await ev(`document.querySelector('sakuga-badge').count`)) === 3); }
+{ await ev(`(() => { const s = document.querySelector('sakuga-spinner'); s.setAttribute('size', '24'); s.start(); s.error(); })()`); await sleep(250);
+  check('spinner: small size + error() sets failed state', await ev(`document.querySelector('sakuga-spinner').failed && !document.querySelector('sakuga-spinner').active`)); }
+{ await ev(`(() => { const a1 = document.createElement('sakuga-accordion'); a1.setAttribute('group', 'tgrp'); a1.setAttribute('open', ''); const a2 = document.createElement('sakuga-accordion'); a2.setAttribute('group', 'tgrp'); document.body.append(a1, a2); a2.show(); window.__accGrp = !a1.open && a2.open; a1.remove(); a2.remove(); })()`);
+  check('accordion: shared group closes sibling', await ev(`window.__accGrp`)); }
 if (logs.length) { console.log(logs.join('\n')); fails++; }
 ws.close(); chrome.kill(); await sleep(300); try { rmSync(PROFILE, { recursive: true, force: true }); } catch {} process.exit(fails ? 1 : 0);
