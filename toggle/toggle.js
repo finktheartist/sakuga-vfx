@@ -7,10 +7,26 @@
 // Read el.checked. It fires change when someone flips it. With a name, it is sent with its form like a checkbox.
 (() => {
 function component(fx) {
-const N = 43, FPS = 30, FW = 300, FH = 325, COLS = 8;
-const ON = Array.from({ length: N }, (_, i) => i), OFF = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
-let sheet = null;   // one decoded image for every toggle on the page
-const getSheet = () => sheet || (sheet = Object.assign(new Image(), { src: SHEET }));
+const N = 43, FPS = 38, FW = 300, FH = 325, COLS = 8;
+const ON = Array.from({ length: N - 5 }, (_, i) => i + 5), OFF = [11, 10, 9, 8, 7, 6, 5, 0];
+let sheet = null, frames = null;   // one decoded image and pre-sliced canvases for every toggle on the page
+const getSheet = () => {
+  if (sheet) return sheet;
+  sheet = new Image();
+  sheet.onload = () => {
+    const slice = () => {
+      if (frames) return;
+      frames = Array.from({ length: N }, (_, i) => {
+        const cv = document.createElement('canvas'); cv.width = FW; cv.height = FH;
+        cv.getContext('2d').drawImage(sheet, (i % COLS) * FW, Math.floor(i / COLS) * FH, FW, FH, 0, 0, FW, FH);
+        return cv;
+      });
+    };
+    if (sheet.decode) sheet.decode().then(slice).catch(slice); else slice();
+  };
+  sheet.src = SHEET;
+  return sheet;
+};
 
 class SakugaToggle extends fx.Base {
   static delegates = true;
@@ -18,7 +34,7 @@ class SakugaToggle extends fx.Base {
   static observedAttributes = ['checked', 'disabled', 'label'];
   static css = `
     :host { width: 108px; height: 54px; margin: 89px 21px 20px; }   /* the drawing is bigger than the button: this keeps room for all of it */
-    .tog { position: relative; display: block; width: 108px; height: 54px; padding: 0; border: 0; border-radius: 27px; background: none; cursor: pointer; }
+    .tog { position: relative; display: block; width: 108px; height: 54px; padding: 0; border: 0; border-radius: 27px; background: none; cursor: pointer; touch-action: manipulation; will-change: transform; }
     .tog:disabled { cursor: not-allowed; opacity: .5; }
     canvas { position: absolute; left: 50%; top: 50%; width: 150px; height: 162.5px; margin: -115.6px 0 0 -75px; pointer-events: none; }`;
   get checked() { return this.hasAttribute('checked'); }
@@ -29,7 +45,7 @@ class SakugaToggle extends fx.Base {
   attributeChangedCallback(name) {
     if (!this.b) return;
     if (name === 'checked') { const on = this.checked; this.b.setAttribute('aria-checked', String(on)); if (!this.flipping) { this.seq = [on ? N - 1 : 0]; this.pos = 0; } this.form(); }
-    if (name === 'disabled') this.b.disabled = this.disabled;
+    if (name === 'disabled') { this.b.disabled = this.disabled; if (this.disabled) this.sq.s.to = 1; }
     if (name === 'label') this.b.setAttribute('aria-label', this.getAttribute('label') || 'Toggle');
   }
   form() { this.internals.setFormValue(this.checked ? this.value : null); }
@@ -38,8 +54,12 @@ class SakugaToggle extends fx.Base {
   }
   setup() {
     this.b = this.$('.tog'); this.c = this.$('canvas').getContext('2d');
-    this.seq = [this.checked ? N - 1 : 0]; this.pos = 0; this.acc = 0; this.shown = -1;
-    const img = getSheet(); if (!img.complete) img.addEventListener('load', () => this.draw(this.cur()), { once: true });
+    this.sq = fx.squashy(this.b, { low: 0.9, wide: 0.14 });
+    this.seq = [this.checked ? N - 1 : 0]; this.pos = 0; this.t = 0; this.shown = -1;
+    const img = getSheet();
+    const paintReady = () => { if (this.isConnected) this.draw(this.cur()); };
+    if (img.complete) paintReady();
+    else img.addEventListener('load', () => { if (img.decode) img.decode().then(paintReady).catch(paintReady); else paintReady(); }, { once: true });
     this.b.addEventListener('click', () => this.flip());
     this.form();
   }
@@ -47,16 +67,24 @@ class SakugaToggle extends fx.Base {
   flip() {
     if (this.disabled) return; const on = !this.checked;
     this.flipping = true; this.checked = on; this.flipping = false;
-    this.seq = on ? ON : OFF; this.pos = fx.calm ? this.seq.length - 1 : 0; this.acc = 0; this.draw(this.cur());
+    this.sq.pop.x = 1.08;
+    this.seq = on ? ON : OFF; this.pos = fx.calm ? this.seq.length - 1 : 0; this.t = 0; this.draw(this.cur());
     this.dispatchEvent(new Event('change', { bubbles: true }));
   }
   cur() { return this.seq[Math.min(this.seq.length - 1, this.pos)]; }
   draw(i) {
+    if (frames && frames[i]) {
+      this.c.clearRect(0, 0, FW, FH); this.c.drawImage(frames[i], 0, 0); this.shown = i; return;
+    }
     const img = getSheet(); if (!img.complete || !img.naturalWidth) return;
     this.c.clearRect(0, 0, FW, FH); this.c.drawImage(img, (i % COLS) * FW, Math.floor(i / COLS) * FH, FW, FH, 0, 0, FW, FH); this.shown = i;
   }
   frame(dt) {
-    if (this.pos < this.seq.length - 1) { this.acc += dt * FPS; while (this.acc >= 1 && this.pos < this.seq.length - 1) { this.acc -= 1; this.pos++; } }
+    this.sq.step(dt);
+    if (this.pos < this.seq.length - 1) {
+      this.t += dt;
+      this.pos = Math.min(this.seq.length - 1, Math.floor((this.t + 0.004) * FPS));
+    }
     if (this.cur() !== this.shown) this.draw(this.cur());
   }
 }
