@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sakuga Claude Code — Motion Collection</title>
+<style>
+  :root { --page: #ffffff; --text: #1d1a4a; --mute: #8580b0; --line: #1d1a4a; --soft: #b8b3ff; --acc: #ff5fa8; }
+  html { overflow-x: clip; background: var(--page); }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--page); color: var(--text); font: 15px/1.45 -apple-system, "Helvetica Neue", "Segoe UI", sans-serif; overflow-x: clip; }
+  main { width: min(680px, 100vw - 32px); padding: 40px 0 60px; }
+  h1 { margin: 0; font: italic 800 26px/1.1 "Avenir Next", "Nunito", -apple-system, "Segoe UI", sans-serif; }
+  .sub { margin: 4px 0 0; color: var(--mute); }
+  .stage { display: flex; align-items: center; justify-content: center; min-height: 250px; padding: 64px 0 24px; }
+  .stories { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .stories button {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 10px 14px; border: 2.5px solid var(--line); border-radius: 12px;
+    background: #fff; color: var(--text); font: 800 13px/1.25 inherit; cursor: pointer;
+    box-shadow: 3px 4px 0 var(--soft); text-align: left; transition: transform .08s;
+  }
+  .stories button span { font-size: 11px; color: var(--mute); font-weight: 700; }
+  .stories button[aria-pressed="true"] { background: #fff0f7; border-color: var(--acc); box-shadow: 3px 4px 0 var(--acc); }
+  .stories button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--soft); }
+  .hint, .said { margin: 0 4px; color: var(--mute); text-align: center; } .said { min-height: 1.45em; margin-top: 8px; font-size: 13px; }
+  .embed body { place-items: start center; min-height: 0; } .embed h1, .embed .sub, .embed .hint { display: none; } .embed main { padding: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sakuga Claude Code</h1>
+  <p class="sub">The exact pixel Claude Code mascot from <code>CLAUDE-CODE-COLLECTION.md</code> with Sakuga anime stories.</p>
+  <div class="stage">
+    <sakuga-claude-code id="el" story="ninja-dash"></sakuga-claude-code>
+  </div>
+  <div class="stories" role="group" aria-label="Claude Code stories">
+    <button type="button" data-story="ninja-dash" aria-pressed="true">忍者ダッシュ — Ninja Dash<span>Hachimaki &amp; Shu!</span></button>
+    <button type="button" data-story="terminal-sprint">端末疾走 — Terminal Sprint<span>Speed lines &amp; Zuza!</span></button>
+    <button type="button" data-story="release-launch">本番出荷 — Release Launch<span>Burst &amp; Don!</span></button>
+    <button type="button" data-story="coffee-compile">珈琲コンパイル — Coffee Compile<span>Steam &amp; Pon</span></button>
+    <button type="button" data-story="bug-hunt">バグ討伐 — Bug Hunt<span>Target lock &amp; Kachi</span></button>
+    <button type="button" data-story="build-sleep">ビルド昼寝 — Build Sleep<span>Tap to wake shock!</span></button>
+  </div>
+  <p class="hint">Pick any story above or click the Claude Code mascot directly.</p>
+  <p class="said" aria-live="polite"></p>
+</main>
+<script src="claude-code.js"></script>
+<script>
+const Q = new URLSearchParams(location.search), el = document.getElementById('el');
+if (Q.get('embed') === '1') document.documentElement.classList.add('embed');
+const say = (t) => { document.querySelector('.said').textContent = t; };
+const btns = [...document.querySelectorAll('[data-story]')];
+el.addEventListener('sakuga:story', (e) => say(`story="${e.detail.story}" (${e.detail.jp}): ${e.detail.en}`));
+btns.forEach((b) => {
+  b.addEventListener('click', () => {
+    btns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    el.setStory(b.dataset.story, true);
+  });
+});
+</script>
+</body>
+</html>
